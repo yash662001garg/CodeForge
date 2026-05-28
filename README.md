@@ -12,6 +12,12 @@ Distributed Online Compiler using Docker.
 - SOLID architecture
 - Plugin compiler system
 
+## Docker
+
+```bash
+docker compose up --build
+```
+
 ## Run Backend
 
 ```bash
@@ -26,10 +32,4 @@ uvicorn main:app --reload
 cd frontend
 npm install
 npm run dev
-```
-
-## Docker
-
-```bash
-docker compose up --build
 ```
