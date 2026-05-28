@@ -1,14 +1,13 @@
 
 # CodeForge
 
-Distributed Online Compiler using Docker and Kubernetes.
+Distributed Online Compiler using Docker.
 
 ## Features
 
 - JWT Login/Register
 - Last 5 code history per user
 - Docker sandbox execution
-- Kubernetes deployment
 - Python, Java, C++, JavaScript support
 - SOLID architecture
 - Plugin compiler system
