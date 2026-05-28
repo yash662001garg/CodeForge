@@ -31,7 +31,7 @@ def verify_password(plain_password, hashed_password):
         return False
 
 @router.post("/register")
-def register(req: RegisterRequest, db: Session = Depends(get_db)):
+async def register(req: RegisterRequest, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == req.email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -44,7 +44,7 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
     return {"message": "User registered", "user_id": new_user.id, "username": new_user.username}
 
 @router.post("/login")
-def login(req: LoginRequest, db: Session = Depends(get_db)):
+async def login(req: LoginRequest, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == req.email).first()
     if not db_user or not verify_password(req.password, db_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")

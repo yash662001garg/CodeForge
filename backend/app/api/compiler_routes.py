@@ -4,8 +4,11 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import CodeHistory, User
 from app.compiler.executor import execute_code_in_docker
+from concurrent.futures import ThreadPoolExecutor
+import asyncio
 
 router = APIRouter()
+executor = ThreadPoolExecutor(max_workers=5)
 
 class ExecuteRequest(BaseModel):
     language: str
@@ -14,13 +17,21 @@ class ExecuteRequest(BaseModel):
     user_id: int
 
 @router.post("/execute")
-def execute(req: ExecuteRequest, db: Session = Depends(get_db)):
+async def execute(req: ExecuteRequest, db: Session = Depends(get_db)):
     # Verify user exists
     user = db.query(User).filter(User.id == req.user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    result = execute_code_in_docker(req.language, req.code, req.input)
+    # Run blocking I/O in thread pool
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(
+        executor, 
+        execute_code_in_docker, 
+        req.language, 
+        req.code, 
+        req.input
+    )
     
     # Save history
     new_history = CodeHistory(
@@ -38,7 +49,7 @@ def execute(req: ExecuteRequest, db: Session = Depends(get_db)):
     }
 
 @router.get("/history/{user_id}")
-def history(user_id: int, db: Session = Depends(get_db)):
+async def history(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
