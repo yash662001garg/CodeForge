@@ -4,6 +4,7 @@ import tarfile
 from app.compiler.factory.compiler_factory import CompilerFactory
 
 _docker_client = None
+EXECUTION_TIMEOUT = 30  # 30 seconds timeout
 
 def get_docker_client():
     global _docker_client
@@ -79,9 +80,16 @@ def execute_code_in_docker(language: str, code: str, user_input: str):
         # Copy files into the container via put_archive (no bind mounts needed)
         container.put_archive("/app", tar_data)
 
-        # Start and wait for completion
+        # Start container
         container.start()
-        exit_status = container.wait()
+        
+        # Wait for completion with timeout
+        try:
+            exit_status = container.wait(timeout=EXECUTION_TIMEOUT)
+        except docker.errors.APIError:
+            # Timeout occurred - kill the container
+            container.kill()
+            return {"output": f"Error: Execution timeout (exceeded {EXECUTION_TIMEOUT}s). Possible infinite loop detected and killed."}
 
         stdout = container.logs(stdout=True, stderr=False).decode("utf-8")
         stderr = container.logs(stdout=False, stderr=True).decode("utf-8")

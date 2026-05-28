@@ -3,7 +3,7 @@ from app.compiler.interfaces.compiler import ICompiler
 class JavaCompiler(ICompiler):
 
     def get_image(self) -> str:
-        return "openjdk:17-jdk-slim"
+        return "amazoncorretto:17"
 
     def get_compile_command(self, file_name: str) -> str:
         return f"javac {file_name}"
